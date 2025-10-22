@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import AddExpensePage from './pages/AddExpensePage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 const theme = createTheme({
@@ -27,6 +28,14 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <DashboardPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/expenses/add"
+                        element={
+                            <ProtectedRoute>
+                                <AddExpensePage />
                             </ProtectedRoute>
                         }
                     />

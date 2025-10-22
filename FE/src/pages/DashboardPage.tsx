@@ -1,13 +1,13 @@
 import { Container, Box, Typography, Button, Paper } from '@mui/material';
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logout } from '../store/slices/authSlice';
-import CategorySelect from '../components/CategorySelect';
+import AddIcon from '@mui/icons-material/Add';
 
 export default function DashboardPage() {
+    const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { user } = useAppSelector((state) => state.auth);
-    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -31,20 +31,15 @@ export default function DashboardPage() {
                         </Button>
                     </Box>
 
-                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                        Test Category Management
-                    </Typography>
-                    <Box sx={{ maxWidth: 400, mt: 2 }}>
-                        <CategorySelect
-                            value={selectedCategory}
-                            onChange={setSelectedCategory}
-                            required
-                        />
-                        {selectedCategory && (
-                            <Typography variant="body2" sx={{ mt: 2 }}>
-                                Selected Category ID: {selectedCategory}
-                            </Typography>
-                        )}
+                    <Box sx={{ mt: 3 }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => navigate('/expenses/add')}
+                            size="large"
+                        >
+                            Add New Expense
+                        </Button>
                     </Box>
                 </Paper>
             </Box>

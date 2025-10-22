@@ -12,15 +12,15 @@ import {
 import storage from 'redux-persist/lib/storage';
 import authReducer from './slices/authSlice';
 import categoriesReducer from './slices/categoriesSlice';
+import expensesReducer from './slices/expensesSlice';
 
 // Import slices (will be created later)
-// import expensesReducer from './slices/expensesSlice';
 // import analyticsReducer from './slices/analyticsSlice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
     categories: categoriesReducer,
-    // expenses: expensesReducer,
+    expenses: expensesReducer,
     // analytics: analyticsReducer,
 });
 

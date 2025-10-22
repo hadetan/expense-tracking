@@ -24,26 +24,44 @@ const initialState: CategoriesState = {
     lastFetched: null,
 };
 
-export const fetchCategories = createAsyncThunk(
+export const fetchCategories = createAsyncThunk<
+    Category[],
+    void,
+    { rejectValue: string }
+>(
     'categories/fetchCategories',
     async (_, { rejectWithValue }) => {
         try {
             const response = await api.get<Category[]>('/categories');
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch categories');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to fetch categories';
+            return rejectWithValue(errorMessage);
         }
     }
 );
 
-export const createCategory = createAsyncThunk(
+export const createCategory = createAsyncThunk<
+    Category,
+    string,
+    { rejectValue: string }
+>(
     'categories/createCategory',
-    async (name: string, { rejectWithValue }) => {
+    async (name, { rejectWithValue }) => {
         try {
             const response = await api.post<Category>('/categories', { name });
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to create category');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to create category';
+            return rejectWithValue(errorMessage);
         }
     }
 );

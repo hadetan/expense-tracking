@@ -19,9 +19,13 @@ const initialState: ExpensesState = {
     pagination: null,
 };
 
-export const fetchExpenses = createAsyncThunk(
+export const fetchExpenses = createAsyncThunk<
+    FetchExpensesResponse,
+    FetchExpensesFilters | undefined,
+    { rejectValue: string }
+>(
     'expenses/fetchExpenses',
-    async (filters: FetchExpensesFilters = {}, { rejectWithValue }) => {
+    async (filters = {}, { rejectWithValue }) => {
         try {
             const params = new URLSearchParams();
             if (filters.status) params.append('status', filters.status);
@@ -34,56 +38,97 @@ export const fetchExpenses = createAsyncThunk(
 
             const response = await api.get<FetchExpensesResponse>(`/expenses?${params.toString()}`);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to fetch expenses');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to fetch expenses';
+            return rejectWithValue(errorMessage);
         }
     }
 );
 
-export const createExpense = createAsyncThunk(
+export const createExpense = createAsyncThunk<
+    Expense,
+    CreateExpenseData,
+    { rejectValue: string }
+>(
     'expenses/createExpense',
-    async (data: CreateExpenseData, { rejectWithValue }) => {
+    async (data, { rejectWithValue }) => {
         try {
             const response = await api.post<Expense>('/expenses', data);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to create expense');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to create expense';
+            return rejectWithValue(errorMessage);
         }
     }
 );
 
-export const updateExpense = createAsyncThunk(
+export const updateExpense = createAsyncThunk<
+    Expense,
+    { id: string; data: CreateExpenseData },
+    { rejectValue: string }
+>(
     'expenses/updateExpense',
-    async ({ id, data }: { id: string; data: CreateExpenseData }, { rejectWithValue }) => {
+    async ({ id, data }, { rejectWithValue }) => {
         try {
             const response = await api.patch<Expense>(`/expenses/${id}`, data);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to update expense');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to update expense';
+            return rejectWithValue(errorMessage);
         }
     }
 );
 
-export const approveExpense = createAsyncThunk(
+export const approveExpense = createAsyncThunk<
+    Expense,
+    string,
+    { rejectValue: string }
+>(
     'expenses/approveExpense',
-    async (id: string, { rejectWithValue }) => {
+    async (id, { rejectWithValue }) => {
         try {
             const response = await api.patch<Expense>(`/expenses/${id}/approve`);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to approve expense');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to approve expense';
+            return rejectWithValue(errorMessage);
         }
     }
 );
 
-export const rejectExpense = createAsyncThunk(
+export const rejectExpense = createAsyncThunk<
+    Expense,
+    { id: string; rejectionReason: string },
+    { rejectValue: string }
+>(
     'expenses/rejectExpense',
-    async ({ id, rejectionReason }: { id: string; rejectionReason: string }, { rejectWithValue }) => {
+    async ({ id, rejectionReason }, { rejectWithValue }) => {
         try {
             const response = await api.patch<Expense>(`/expenses/${id}/reject`, { rejectionReason });
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.response?.data?.error || 'Failed to reject expense');
+        } catch (error) {
+            const errorMessage = error && typeof error === 'object' && 'response' in error &&
+                error.response && typeof error.response === 'object' && 'data' in error.response &&
+                error.response.data && typeof error.response.data === 'object' && 'error' in error.response.data
+                ? String(error.response.data.error)
+                : 'Failed to reject expense';
+            return rejectWithValue(errorMessage);
         }
     }
 );

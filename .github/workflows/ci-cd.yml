@@ -1,0 +1,196 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18.x'
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            FE/package-lock.json
+            BE/package-lock.json
+
+      - name: Lint Frontend
+        run: |
+          cd FE
+          npm ci
+          npm run lint
+
+      - name: Lint Backend (TypeScript Check)
+        run: |
+          cd BE
+          npm ci
+          npx tsc --noEmit
+
+  test-backend:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: BE/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd BE
+          npm ci
+
+      - name: Generate Prisma Client
+        run: |
+          cd BE
+          npx prisma generate
+
+      - name: Run tests
+        run: |
+          cd BE
+          npm run test:coverage
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          JWT_SECRET: test-secret-key
+
+      - name: Upload Backend Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./BE/coverage/coverage-final.json
+          flags: backend
+          name: backend-coverage
+        continue-on-error: true
+
+  test-frontend:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: FE/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd FE
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd FE
+          npm run test:coverage
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_API_BASE_URL: http://localhost:3000/api
+
+      - name: Upload Frontend Coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./FE/coverage/coverage-final.json
+          flags: frontend
+          name: frontend-coverage
+        continue-on-error: true
+
+  build-backend:
+    name: Build Backend
+    runs-on: ubuntu-latest
+    needs: [lint, test-backend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: BE/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd BE
+          npm ci
+
+      - name: Generate Prisma Client
+        run: |
+          cd BE
+          npx prisma generate
+
+      - name: Build Backend
+        run: |
+          cd BE
+          npm run build
+
+      - name: Upload Backend Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: BE/dist
+          retention-days: 7
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    needs: [lint, test-frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: FE/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd FE
+          npm ci
+
+      - name: Build Frontend
+        run: |
+          cd FE
+          npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+      - name: Upload Frontend Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: FE/dist
+          retention-days: 7

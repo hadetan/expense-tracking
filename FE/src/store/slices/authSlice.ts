@@ -25,14 +25,26 @@ const initialState: AuthState = {
     error: null,
 };
 
-export const login = createAsyncThunk(
+interface LoginResponse {
+    user: User;
+    accessToken: string;
+}
+
+export const login = createAsyncThunk<
+    LoginResponse,
+    { email: string; password: string },
+    { rejectValue: string }
+>(
     'auth/login',
-    async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+    async (credentials, { rejectWithValue }) => {
         try {
-            const response = await apiClient.post('/auth/login', credentials);
+            const response = await apiClient.post<LoginResponse>('/auth/login', credentials);
             return response.data;
-        } catch (error: any) {
-            return rejectWithValue(error.message || 'Login failed');
+        } catch (error) {
+            const message = error && typeof error === 'object' && 'message' in error 
+                ? String(error.message) 
+                : 'Login failed';
+            return rejectWithValue(message);
         }
     }
 );
@@ -41,7 +53,7 @@ export const logout = createAsyncThunk('auth/logout', async () => {
     try {
         await apiClient.post('/auth/logout');
         return null;
-    } catch (error) {
+    } catch {
         return null;
     }
 });
@@ -65,7 +77,7 @@ const authSlice = createSlice({
             state.isLoading = true;
             state.error = null;
         });
-        builder.addCase(login.fulfilled, (state, action: PayloadAction<any>) => {
+        builder.addCase(login.fulfilled, (state, action: PayloadAction<LoginResponse>) => {
             state.isLoading = false;
             state.isAuthenticated = true;
             state.user = action.payload.user;

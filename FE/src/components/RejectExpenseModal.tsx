@@ -61,7 +61,7 @@ export default function RejectExpenseModal({
             setRejectionReason('');
             setError('');
             onClose();
-        } catch (err) {
+        } catch {
             setError('Failed to reject expense. Please try again.');
         } finally {
             setLoading(false);

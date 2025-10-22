@@ -37,9 +37,17 @@ interface FailedRow {
     error: string;
 }
 
+interface SuccessfulExpense {
+    id: string;
+    amount: string;
+    category: string;
+    description: string;
+    date: string;
+}
+
 interface UploadResponse {
     summary: UploadSummary;
-    successfulExpenses: any[];
+    successfulExpenses: SuccessfulExpense[];
     failedRows: FailedRow[];
 }
 
@@ -112,8 +120,13 @@ export default function BulkUploadPage() {
             if (fileInput) {
                 fileInput.value = '';
             }
-        } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to upload file. Please try again.');
+        } catch (err) {
+            const errorMessage = err && typeof err === 'object' && 'response' in err && 
+                err.response && typeof err.response === 'object' && 'data' in err.response &&
+                err.response.data && typeof err.response.data === 'object' && 'error' in err.response.data
+                ? String(err.response.data.error)
+                : 'Failed to upload file. Please try again.';
+            setError(errorMessage);
         } finally {
             setUploading(false);
             setUploadProgress(0);

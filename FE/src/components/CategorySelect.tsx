@@ -45,7 +45,7 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
 
   const selectedCategory = categories.find((cat) => cat.id === value) || null;
 
-  const handleCategoryChange = (_event: any, newValue: Category | null) => {
+  const handleCategoryChange = (_event: React.SyntheticEvent, newValue: Category | null) => {
     onChange(newValue ? newValue.id : null);
   };
 
@@ -58,7 +58,9 @@ const CategorySelect: React.FC<CategorySelectProps> = ({
       onChange(result.id);
       setOpenDialog(false);
       setNewCategoryName('');
-    } catch (_) {} finally {
+    } catch {
+      // Error is handled by Redux state
+    } finally {
       setCreating(false);
     }
   };

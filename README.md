@@ -142,6 +142,16 @@ expense-tracker/
 - **Analytics Dashboard**: View team expense trends and category breakdowns
 - **Filtering**: Filter expenses by date, category, and status
 - **Redux Persistence**: Cached data persists across sessions
+- **Bulk Upload**: Upload multiple expenses via CSV/Excel file
+- **CI/CD Pipeline**: Automated testing, building
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- ✅ **Automated Linting**: ESLint for frontend, TypeScript checking for backend
+- ✅ **Automated Testing**: Jest tests run on every commit and pull request
+- ✅ **Pull Request Checks**: Automated checks ensure code quality before merging
 
 ## API Endpoints
 

@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
 
 dotenv.config();
 
@@ -22,8 +23,8 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
 // app.use('/api/expenses', expenseRoutes);
-// app.use('/api/categories', categoryRoutes);
 // app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware (will be created later)

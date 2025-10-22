@@ -21,13 +21,17 @@ export default function LoginPage() {
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const { isLoading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+    const { isLoading, error, isAuthenticated, user } = useAppSelector((state) => state.auth);
 
     useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/dashboard');
+        if (isAuthenticated && user) {
+            if (user.role === 'admin') {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, user, navigate]);
 
     useEffect(() => {
         return () => {
@@ -153,8 +157,12 @@ export default function LoginPage() {
                     </Box>
 
                     <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
-                        Test account:<br />
+                        Employee account:<br />
                         Email: john.doe@company.com<br />
+                        Pass: 123456<br />
+
+                        Admin account:<br />
+                        Email: jane.smith@company.com<br />
                         Pass: 123456
                     </Typography>
                 </Paper>

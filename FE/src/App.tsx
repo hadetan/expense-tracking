@@ -3,7 +3,12 @@ import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AddExpensePage from './pages/AddExpensePage';
+import EditExpensePage from './pages/EditExpensePage';
+import ExpensesListPage from './pages/ExpensesListPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
+import AdminLayout from './components/AdminLayout';
 
 const theme = createTheme({
     palette: {
@@ -23,11 +28,21 @@ function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
+
+                    {/* Employee Routes */}
                     <Route
                         path="/dashboard"
                         element={
                             <ProtectedRoute>
                                 <DashboardPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/expenses"
+                        element={
+                            <ProtectedRoute>
+                                <ExpensesListPage />
                             </ProtectedRoute>
                         }
                     />
@@ -39,6 +54,29 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="/expenses/edit/:id"
+                        element={
+                            <ProtectedRoute>
+                                <EditExpensePage />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Admin Routes */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <AdminRoute>
+                                <AdminLayout />
+                            </AdminRoute>
+                        }
+                    >
+                        <Route path="dashboard" element={<AdminDashboardPage />} />
+                        <Route path="expenses" element={<div>Admin Expenses Page - Coming in Story 8</div>} />
+                        <Route path="approvals" element={<div>Admin Approvals Page - Coming in Story 8</div>} />
+                    </Route>
+
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
             </BrowserRouter>

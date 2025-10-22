@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { logout } from '../store/slices/authSlice';
 import AddIcon from '@mui/icons-material/Add';
+import ListIcon from '@mui/icons-material/List';
 
 export default function DashboardPage() {
     const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function DashboardPage() {
                         </Button>
                     </Box>
 
-                    <Box sx={{ mt: 3 }}>
+                    <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
                         <Button
                             variant="contained"
                             startIcon={<AddIcon />}
@@ -39,6 +40,14 @@ export default function DashboardPage() {
                             size="large"
                         >
                             Add New Expense
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            startIcon={<ListIcon />}
+                            onClick={() => navigate('/expenses')}
+                            size="large"
+                        >
+                            View My Expenses
                         </Button>
                     </Box>
                 </Paper>

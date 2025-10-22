@@ -37,6 +37,3 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
-# Lock files
-package-lock.json

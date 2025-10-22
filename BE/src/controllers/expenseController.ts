@@ -2,6 +2,8 @@ import type { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.js';
 import prisma from '../utils/lib/prisma.js';
 import { Decimal } from '@prisma/client/runtime/library';
+import { parseExpenseFile, validateExpenseRow, parseDateDDMMYYYY, type ValidationError } from '../utils/fileParser.js';
+import type { ParsedExpenseRow } from '../utils/fileParser.js';
 
 /**
  * Create a new expense
@@ -304,5 +306,274 @@ export const updateExpense = async (req: AuthRequest, res: Response) => {
     } catch (error) {
         console.error('Error updating expense:', error);
         res.status(500).json({ error: 'Failed to update expense' });
+    }
+};
+
+/**
+ * Approve an expense from admin
+ * PATCH /api/expenses/:id/approve
+ */
+export const approveExpense = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (!id) {
+            return res.status(400).json({ error: 'Expense ID is required' });
+        }
+
+        const admin = await prisma.admin.findUnique({
+            where: { userId }
+        });
+
+        if (!admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+
+        const expense = await prisma.expense.findUnique({
+            where: { id }
+        });
+
+        if (!expense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        if (expense.status !== 'PENDING') {
+            return res.status(400).json({ error: 'Only pending expenses can be approved' });
+        }
+
+        const approvedExpense = await prisma.expense.update({
+            where: { id },
+            data: {
+                status: 'APPROVED',
+                rejectionReason: null
+            },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        res.status(200).json(approvedExpense);
+    } catch (error) {
+        console.error('Error approving expense:', error);
+        res.status(500).json({ error: 'Failed to approve expense' });
+    }
+};
+
+/**
+ * Reject an expense from admin
+ * PATCH /api/expenses/:id/reject
+ */
+export const rejectExpense = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { rejectionReason } = req.body;
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        if (!id) {
+            return res.status(400).json({ error: 'Expense ID is required' });
+        }
+
+        const admin = await prisma.admin.findUnique({
+            where: { userId }
+        });
+
+        if (!admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+
+        if (!rejectionReason || typeof rejectionReason !== 'string' || rejectionReason.trim().length === 0) {
+            return res.status(400).json({ error: 'Rejection reason is required' });
+        }
+
+        if (rejectionReason.trim().length < 10) {
+            return res.status(400).json({ error: 'Rejection reason must be at least 10 characters' });
+        }
+
+        const expense = await prisma.expense.findUnique({
+            where: { id }
+        });
+
+        if (!expense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        if (expense.status !== 'PENDING') {
+            return res.status(400).json({ error: 'Only pending expenses can be rejected' });
+        }
+
+        const rejectedExpense = await prisma.expense.update({
+            where: { id },
+            data: {
+                status: 'REJECTED',
+                rejectionReason: rejectionReason.trim()
+            },
+            include: {
+                category: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                },
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        res.status(200).json(rejectedExpense);
+    } catch (error) {
+        console.error('Error rejecting expense:', error);
+        res.status(500).json({ error: 'Failed to reject expense' });
+    }
+};
+
+/**
+ * Bulk upload expenses from CSV/Excel file
+ * POST /api/expenses/bulk-upload
+ */
+export const bulkUploadExpenses = async (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Type assertion for multer file
+        const file = req.file as Express.Multer.File | undefined;
+
+        if (!file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const fileBuffer = file.buffer;
+        const fileMimetype = file.mimetype;
+
+        // Parse file
+        let rows: ParsedExpenseRow[];
+        try {
+            rows = await parseExpenseFile(fileBuffer, fileMimetype);
+        } catch (error: any) {
+            return res.status(400).json({ error: error.message || 'Failed to parse file' });
+        }
+
+        if (rows.length === 0) {
+            return res.status(400).json({ error: 'File is empty or has no valid data rows' });
+        }
+
+        const allErrors: ValidationError[] = [];
+        const validRows: { row: ParsedExpenseRow; rowNumber: number }[] = [];
+
+        rows.forEach((row, index) => {
+            const rowNumber = index + 2;
+            const errors = validateExpenseRow(row, rowNumber);
+            
+            if (errors.length > 0) {
+                allErrors.push(...errors);
+            } else {
+                validRows.push({ row, rowNumber });
+            }
+        });
+
+        const successful: any[] = [];
+        const failed: { row: number; error: string }[] = [];
+
+        for (const { row, rowNumber } of validRows) {
+            try {
+                const isoDate = parseDateDDMMYYYY(row.date);
+                if (!isoDate) {
+                    failed.push({ row: rowNumber, error: 'Invalid date format' });
+                    continue;
+                }
+
+                let category = await prisma.category.findFirst({
+                    where: {
+                        name: row.category.trim(),
+                        createdBy: userId
+                    }
+                });
+
+                if (!category) {
+                    category = await prisma.category.create({
+                        data: {
+                            name: row.category.trim(),
+                            createdBy: userId
+                        }
+                    });
+                }
+
+                const expense = await prisma.expense.create({
+                    data: {
+                        amount: new Decimal(parseFloat(row.amount)),
+                        categoryId: category.id,
+                        description: row.description.trim(),
+                        date: new Date(isoDate),
+                        userId,
+                        status: 'PENDING'
+                    },
+                    include: {
+                        category: true
+                    }
+                });
+
+                successful.push(expense);
+            } catch (error: any) {
+                failed.push({
+                    row: rowNumber,
+                    error: error.message || 'Failed to create expense'
+                });
+            }
+        }
+
+        const failedRows = [
+            ...allErrors.map(err => ({
+                row: err.row,
+                field: err.field,
+                error: err.message
+            })),
+            ...failed.map(f => ({
+                row: f.row,
+                field: 'general',
+                error: f.error
+            }))
+        ];
+
+        res.status(200).json({
+            summary: {
+                total: rows.length,
+                successful: successful.length,
+                failed: failedRows.length
+            },
+            successfulExpenses: successful,
+            failedRows: failedRows.sort((a, b) => a.row - b.row)
+        });
+    } catch (error) {
+        console.error('Error bulk uploading expenses:', error);
+        res.status(500).json({ error: 'Failed to process bulk upload' });
     }
 };

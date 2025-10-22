@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
@@ -22,17 +24,13 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', message: 'Expense Tracker API is running' });
 });
 
-// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/expenses', expenseRoutes);
-// app.use('/api/analytics', analyticsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
-// Error handling middleware (will be created later)
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!', details: err.message });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);

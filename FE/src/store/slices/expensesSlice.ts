@@ -1,54 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import api from '../../services/api';
-import type { Category } from './categoriesSlice';
-
-export type ExpenseStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-
-export interface Expense {
-    id: string;
-    userId: string;
-    amount: string;
-    categoryId: string;
-    category?: Category;
-    description: string;
-    date: string;
-    status: ExpenseStatus;
-    rejectionReason: string | null;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CreateExpenseData {
-    amount: number;
-    categoryId: string;
-    description: string;
-    date: string;
-}
-
-export interface FetchExpensesFilters {
-    status?: string;
-    categoryId?: string;
-    startDate?: string;
-    endDate?: string;
-    dateFilter?: 'today' | 'week' | 'month' | 'custom' | 'all';
-    page?: number;
-    limit?: number;
-}
-
-export interface PaginationMetadata {
-    currentPage: number;
-    totalPages: number;
-    totalCount: number;
-    limit: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-}
-
-export interface FetchExpensesResponse {
-    expenses: Expense[];
-    pagination: PaginationMetadata;
-}
+import type { CreateExpenseData, Expense, FetchExpensesFilters, FetchExpensesResponse, PaginationMetadata } from '../../types/expenses.types';
 
 interface ExpensesState {
     expenses: Expense[];
@@ -111,6 +64,30 @@ export const updateExpense = createAsyncThunk(
     }
 );
 
+export const approveExpense = createAsyncThunk(
+    'expenses/approveExpense',
+    async (id: string, { rejectWithValue }) => {
+        try {
+            const response = await api.patch<Expense>(`/expenses/${id}/approve`);
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to approve expense');
+        }
+    }
+);
+
+export const rejectExpense = createAsyncThunk(
+    'expenses/rejectExpense',
+    async ({ id, rejectionReason }: { id: string; rejectionReason: string }, { rejectWithValue }) => {
+        try {
+            const response = await api.patch<Expense>(`/expenses/${id}/reject`, { rejectionReason });
+            return response.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.error || 'Failed to reject expense');
+        }
+    }
+);
+
 const expensesSlice = createSlice({
     name: 'expenses',
     initialState,
@@ -118,11 +95,17 @@ const expensesSlice = createSlice({
         clearExpensesError: (state) => {
             state.error = null;
         },
+        clearExpenses: (state) => {
+            state.expenses = [];
+            state.pagination = null;
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(fetchExpenses.pending, (state) => {
             state.loading = true;
             state.error = null;
+            state.expenses = [];
+            state.pagination = null;
         });
         builder.addCase(fetchExpenses.fulfilled, (state, action: PayloadAction<FetchExpensesResponse>) => {
             state.loading = false;
@@ -163,8 +146,41 @@ const expensesSlice = createSlice({
             state.loading = false;
             state.error = action.payload as string;
         });
+
+        builder.addCase(approveExpense.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(approveExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
+            state.loading = false;
+            const index = state.expenses.findIndex(e => e.id === action.payload.id);
+            if (index !== -1) {
+                state.expenses[index] = action.payload;
+            }
+        });
+        builder.addCase(approveExpense.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
+
+        builder.addCase(rejectExpense.pending, (state) => {
+            state.loading = true;
+            state.error = null;
+        });
+        builder.addCase(rejectExpense.fulfilled, (state, action: PayloadAction<Expense>) => {
+            state.loading = false;
+            // Update the expense in the list
+            const index = state.expenses.findIndex(e => e.id === action.payload.id);
+            if (index !== -1) {
+                state.expenses[index] = action.payload;
+            }
+        });
+        builder.addCase(rejectExpense.rejected, (state, action) => {
+            state.loading = false;
+            state.error = action.payload as string;
+        });
     },
 });
 
-export const { clearExpensesError } = expensesSlice.actions;
+export const { clearExpensesError, clearExpenses } = expensesSlice.actions;
 export default expensesSlice.reducer;

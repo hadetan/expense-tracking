@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Container,
     Paper,
@@ -25,8 +25,8 @@ import AddIcon from '@mui/icons-material/Add';
 import { format } from 'date-fns';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchExpenses } from '../store/slices/expensesSlice';
-import type { Expense, ExpenseStatus, FetchExpensesFilters } from '../store/slices/expensesSlice';
 import ExpenseFilters from '../components/ExpenseFilters';
+import type { Expense, ExpenseStatus, FetchExpensesFilters } from '../types/expenses.types';
 
 const getStatusColor = (status: ExpenseStatus): 'warning' | 'success' | 'error' => {
     switch (status) {
@@ -55,10 +55,15 @@ const formatAmount = (amount: string): string => {
 
 export default function ExpensesListPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useAppDispatch();
     const { expenses, loading, error, pagination } = useAppSelector((state) => state.expenses);
-    const [filters, setFilters] = useState<FetchExpensesFilters>({ 
+
+    const initialStatus = (location.state as { filterStatus?: ExpenseStatus })?.filterStatus;
+
+    const [filters, setFilters] = useState<FetchExpensesFilters>({
         dateFilter: 'month',
+        status: initialStatus,
         page: 1,
         limit: 10,
     });

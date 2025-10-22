@@ -5,7 +5,10 @@ import DashboardPage from './pages/DashboardPage';
 import AddExpensePage from './pages/AddExpensePage';
 import EditExpensePage from './pages/EditExpensePage';
 import ExpensesListPage from './pages/ExpensesListPage';
+import BulkUploadPage from './pages/BulkUploadPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminExpensesPage from './pages/AdminExpensesPage';
+import AdminApprovalsPage from './pages/AdminApprovalsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminLayout from './components/AdminLayout';
@@ -62,6 +65,14 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="/expenses/bulk-upload"
+                        element={
+                            <ProtectedRoute>
+                                <BulkUploadPage />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Admin Routes */}
                     <Route
@@ -73,8 +84,8 @@ function App() {
                         }
                     >
                         <Route path="dashboard" element={<AdminDashboardPage />} />
-                        <Route path="expenses" element={<div>Admin Expenses Page - Coming in Story 8</div>} />
-                        <Route path="approvals" element={<div>Admin Approvals Page - Coming in Story 8</div>} />
+                        <Route path="expenses" element={<AdminExpensesPage />} />
+                        <Route path="approvals" element={<AdminApprovalsPage />} />
                     </Route>
 
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -12,7 +12,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useAppSelector } from '../store/hooks';
-import type { FetchExpensesFilters } from '../store/slices/expensesSlice';
+import type { FetchExpensesFilters } from '../types/expenses.types';
 
 interface ExpenseFiltersProps {
     filters: FetchExpensesFilters;

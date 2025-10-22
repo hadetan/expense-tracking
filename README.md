@@ -147,7 +147,7 @@ expense-tracker/
 
 ## CI/CD Pipeline
 
-This project uses GitHub Actions for continuous integration and deployment:
+This project uses GitHub Actions for continuous integration and deployments:
 
 - ✅ **Automated Linting**: ESLint for frontend, TypeScript checking for backend
 - ✅ **Automated Testing**: Jest tests run on every commit and pull request

@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { format } from 'date-fns';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchExpenses } from '../store/slices/expensesSlice';
@@ -111,13 +112,24 @@ export default function ExpensesListPage() {
                         <Typography variant="h4">
                             My Expenses
                         </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={() => navigate('/expenses/add')}
-                        >
-                            Add Expense
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: '20px' }}>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => navigate('/expenses/add')}
+                            >
+                                Add Expense
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                startIcon={<CloudUploadIcon />}
+                                onClick={() => navigate('/expenses/bulk-upload')}
+                                size="large"
+                                color="secondary"
+                            >
+                                Bulk Upload
+                            </Button>
+                        </Box>
                     </Box>
 
                     {error && (

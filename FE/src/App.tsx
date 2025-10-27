@@ -12,6 +12,7 @@ import AdminApprovalsPage from './pages/AdminApprovalsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminLayout from './components/AdminLayout';
+import EmployeeLayout from './components/EmployeeLayout';
 
 const theme = createTheme({
     palette: {
@@ -34,45 +35,19 @@ function App() {
 
                     {/* Employee Routes */}
                     <Route
-                        path="/dashboard"
+                        path="/"
                         element={
                             <ProtectedRoute>
-                                <DashboardPage />
+                                <EmployeeLayout />
                             </ProtectedRoute>
                         }
-                    />
-                    <Route
-                        path="/expenses"
-                        element={
-                            <ProtectedRoute>
-                                <ExpensesListPage />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/expenses/add"
-                        element={
-                            <ProtectedRoute>
-                                <AddExpensePage />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/expenses/edit/:id"
-                        element={
-                            <ProtectedRoute>
-                                <EditExpensePage />
-                            </ProtectedRoute>
-                        }
-                    />
-                    <Route
-                        path="/expenses/bulk-upload"
-                        element={
-                            <ProtectedRoute>
-                                <BulkUploadPage />
-                            </ProtectedRoute>
-                        }
-                    />
+                    >
+                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route path="expenses" element={<ExpensesListPage />} />
+                        <Route path="expenses/add" element={<AddExpensePage />} />
+                        <Route path="expenses/edit/:id" element={<EditExpensePage />} />
+                        <Route path="expenses/bulk-upload" element={<BulkUploadPage />} />
+                    </Route>
 
                     {/* Admin Routes */}
                     <Route

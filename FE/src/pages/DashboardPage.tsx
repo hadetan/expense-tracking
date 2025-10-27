@@ -19,10 +19,8 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { logout } from '../store/slices/authSlice';
 import { fetchExpenses } from '../store/slices/expensesSlice';
 import AddIcon from '@mui/icons-material/Add';
-import ListIcon from '@mui/icons-material/List';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -61,10 +59,6 @@ export default function DashboardPage() {
         setStats({ thisMonthTotal, pendingCount, approvedCount, rejectedCount });
     }, [expenses]);
 
-    const handleLogout = () => {
-        dispatch(logout());
-    };
-
     const recentExpenses = Array.isArray(expenses)
         ? expenses.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5)
         : [];
@@ -98,16 +92,13 @@ export default function DashboardPage() {
         <Container maxWidth="xl">
             <Box sx={{ py: 4 }}>
                 <Paper elevation={2} sx={{ p: 3, mb: 4, bgcolor: 'primary.main', color: 'white' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Typography variant="h4" gutterBottom>
                                 Welcome, {user?.name || user?.email}!
                             </Typography>
                             <Typography variant="body1">Track and manage your expenses</Typography>
                         </Box>
-                        <Button variant="outlined" onClick={handleLogout} sx={{ color: 'white', borderColor: 'white' }}>
-                            Logout
-                        </Button>
                     </Box>
                 </Paper>
 
@@ -226,14 +217,6 @@ export default function DashboardPage() {
                             size="large"
                         >
                             Add New Expense
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            startIcon={<ListIcon />}
-                            onClick={() => navigate('/expenses')}
-                            size="large"
-                        >
-                            View All Expenses
                         </Button>
                         <Button
                             variant="outlined"

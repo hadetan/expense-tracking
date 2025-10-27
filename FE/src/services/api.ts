@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { store } from '../store/store';
+import { clearAuth } from '../store/slices/authSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
@@ -51,8 +53,12 @@ apiClient.interceptors.response.use(
         const message = error.response.data?.error || 'An error occurred';
 
         if (status === 401) {
+            try {
+                store.dispatch(clearAuth());
+            } catch (e) { }
+
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('persist:root');
+            setAuthToken(null);
             window.location.href = '/login';
             return Promise.reject(new Error('Session expired. Please login again.'));
         }

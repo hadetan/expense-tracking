@@ -117,7 +117,7 @@ export default function EmployeeLayout() {
                         >
                             <ListItemIcon
                                 sx={{
-                                    color: isSelected(item.path) ? 'inherit' : 'inherit',
+                                    color: isSelected(item.path) ? theme.palette.primary.contrastText : theme.palette.text.secondary,
                                 }}
                             >
                                 {item.icon}

@@ -93,7 +93,7 @@ export default function DashboardPage() {
             <Box sx={{ py: 4 }}>
                 <Paper elevation={2} sx={{ p: 3, mb: 4, bgcolor: 'primary.main', color: 'white' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <Typography variant="h4" gutterBottom>
                                 Welcome, {user?.name || user?.email}!
                             </Typography>
